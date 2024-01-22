@@ -17,5 +17,5 @@ def calculate_similarity():
 
     return jsonify({'similarity_score': similarity_score})
 
-if __name__=='__main__':
-    app.run()
+# if __name__=='__main__':
+#     app.run()
