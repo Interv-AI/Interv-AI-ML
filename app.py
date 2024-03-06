@@ -10,7 +10,6 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 @app.route('/calculate_similarity', methods=['POST'])
-@app.route('/', methods=['GET'])
 def calculate_similarity():
     data = request.get_json()
 
@@ -29,10 +28,10 @@ def calculate_similarity():
     return jsonify({'similarity_score': similarity_score})
 
 
-@app.route('/', methods=['GET'])
+@app.route('/')
 def home():
-    return jsonify({'status': 'Server is running'})
+    return 'Server is running'
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run()
