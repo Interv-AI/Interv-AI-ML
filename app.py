@@ -27,6 +27,11 @@ def calculate_similarity():
 
     return jsonify({'similarity_score': similarity_score})
 
+@app.route('/hello', methods=['POST'])
+def calculate_similarity():
+    data = request.get_json()
+    a = data.get("hi")
+    return jsonify({'similarity_score': a})
 
 @app.route('/')
 def home():
