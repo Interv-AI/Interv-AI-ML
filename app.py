@@ -27,11 +27,13 @@ def calculate_similarity():
 
     return jsonify({'similarity_score': similarity_score})
 
+
 @app.route('/hello', methods=['POST'])
-def calculate_similarity():
+def hello():
     data = request.get_json()
     a = data.get("hi")
     return jsonify({'similarity_score': a})
+
 
 @app.route('/')
 def home():
@@ -39,4 +41,4 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)
