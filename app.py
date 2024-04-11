@@ -1,76 +1,50 @@
+################################IMPORTANT PLEASE READ##################################################
+###   Added another output to tell if the questions is right or wrong. use this as an benchmark. questions jo check kiye hain vo gpt se produced the. answers agar score below 8.5 answer wrong    #############
+######### Change Threshold to 8.5 for maximum accuracy , will do further testing if time#################################################################################################
+
 from flask import Flask, request, jsonify
 from sentence_transformers import SentenceTransformer, util
-# from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-# import spacy
+import re
 
 app = Flask(__name__)
 
-# # all_MiniLM-L6v2-pre-trained BERT model
-# model = SentenceTransformer('all-MiniLM-L6-v2')
+# Load pre-trained Sentence Transformer model
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
-
-# @app.route('/calculate_similarity', methods=['POST'])
-# def calculate_similarity():
-#     data = request.get_json()
-
-#     actual_answer = data.get("actual_answer")
-#     targeted_answer = data.get("targeted_answer")
-
-#     # Encode the texts to get the embeddings
-#     embeddings = model.encode([actual_answer, targeted_answer])
-
-#     # Calculate cosine similarity
-#     similarity_score = cosine_similarity(
-#         [embeddings[0]], [embeddings[1]])[0, 0]
-
-#     similarity_score = np.float64(similarity_score)
-
-#     return jsonify({'similarity_score': similarity_score})
-
-
-# nlp = spacy.load("en_core_web_md")
-
-# @app.route('/calculate_similarity', methods=['POST'])
-# def calculate_similarity():
-#     data = request.get_json()
-
-#     actual_answer = data.get("actual_answer")
-#     targeted_answer = data.get("targeted_answer")
-
-#     actual_embedding = nlp(actual_answer).vector
-#     targeted_embedding = nlp(targeted_answer).vector
-
-#     similarity_score = cosine_similarity(
-#         [actual_embedding], [targeted_embedding])[0, 0]
-
-#     return jsonify({'similarity_score': similarity_score})
-
-
-# Load DistilBERT model
-model = SentenceTransformer('distilbert-base-nli-stsb')
+# Set similarity threshold
+SIMILARITY_THRESHOLD = 0.85   # Adjust as needed
 
 @app.route('/calculate_similarity', methods=['POST'])
 def calculate_similarity():
     data = request.get_json()
 
-    actual_answer = data.get("actual_answer")
-    targeted_answer = data.get("targeted_answer")
-
+    actual_answer = preprocess_text(data.get("user_answer"))
+    targeted_answer = preprocess_text(data.get("targeted_answer"))
+    
     # Encode the texts to get the embeddings
-    embeddings = model.encode([actual_answer, targeted_answer])
+    actual_answer_embedding = model.encode(actual_answer, convert_to_tensor=True)
+    targeted_answer_embedding = model.encode(targeted_answer, convert_to_tensor=True)
 
     # Calculate cosine similarity
-    similarity_score = util.pytorch_cos_sim(embeddings[0], embeddings[1]).item()
+    similarity_score = util.pytorch_cos_sim(actual_answer_embedding, targeted_answer_embedding).item()
+    
+    # Check if similarity score is above the threshold
+    is_correct = similarity_score >= SIMILARITY_THRESHOLD
 
-    similarity_score = np.float64(similarity_score)
+    return jsonify({'similarity_score': similarity_score, 'is_correct': is_correct})
 
-    return jsonify({'similarity_score': similarity_score})
+def preprocess_text(text):
+    # Convert to lowercase
+    text = text.lower()
+    # Remove punctuation
+    text = re.sub(r'[^\w\s]', '', text)
+    # Remove extra whitespaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 @app.route('/')
 def home():
     return 'Server is running 🎊🔥'
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
